@@ -28,6 +28,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
+		<dependency>
+		    <groupId>org.bytedeco</groupId>
+		    <artifactId>javacv</artifactId>
+		    <version>1.5.3</version>
+		</dependency>
 
 	</dependencies>
   <build>
