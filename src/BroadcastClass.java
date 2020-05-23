@@ -12,10 +12,15 @@ import java.util.Scanner;
 
 public class BroadcastClass {
 
-    private static final String LOCATION_OF_FFMPEG_BIN = "C:\\Users\\Tomi\\Downloads\\ffmpeg-20200515-b18fd2b-win64-static\\bin";
-    private static String serverHostname = "";
-    private static Integer serverPort = null;
-    private static String clientIP = "25.90.15.98";
+    private static final String LOCATION_OF_FFMPEG_BIN_TOMISLAV = "C:\\Users\\Tomi\\Downloads\\ffmpeg-20200515-b18fd2b-win64-static\\bin";
+    private static final String LOCATION_OF_FFMPEG_BIN_FILIP = "C:\\Users\\Korisnik\\Desktop\\ffmpeg-20200522-38490cb-win64-static\\bin";
+    private static final String IP_TOMISLAV = "25.88.153.87";
+    private static final String IP_FILIP = "25.90.15.98";
+
+    private static String serverIP = "";
+    private static String clientIP = "";
+    private static Integer serverPort = 4445;
+    private static String ffmpegBinLocation = "";
 
     public static void main(String[] args) {
 
@@ -25,11 +30,10 @@ public class BroadcastClass {
         while (true) {
             String input = in.nextLine();
             if (input.equals("1")) {
-                setServerPort(in);
+                setServerDataBasedOnUser(in);
                 startServer();
             } else if (input.equals("2")) {
-                setServerHostname(in);
-                setServerPort(in);
+                setClientDataBasedOnUser(in);
                 startClient();
             } else {
                 System.out.println("Input must be a number, either 1 or 2!");
@@ -38,9 +42,41 @@ public class BroadcastClass {
         }
     }
 
-    static void setServerHostname(Scanner in) {
+    static void setServerDataBasedOnUser(Scanner in) {
+        String user = retrieveUser(in);
+        if (user.equals("1")) {
+            serverIP = IP_TOMISLAV;
+            clientIP = IP_FILIP;
+            ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_TOMISLAV;
+        } else {
+            serverIP = IP_FILIP;
+            clientIP = IP_TOMISLAV;
+            ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_FILIP;
+        }
+    }
+
+    static void setClientDataBasedOnUser(Scanner in) {
+        String user = retrieveUser(in);
+        if (user.equals("1")) {
+            serverIP = IP_FILIP;
+            clientIP = IP_TOMISLAV;
+            ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_TOMISLAV;
+        } else {
+            serverIP = IP_TOMISLAV;
+            clientIP = IP_FILIP;
+            ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_FILIP;
+        }
+    }
+
+    static String retrieveUser(Scanner in) {
+        System.out.printf("Please select user:\n1 - Tomislav\n2 - Filip");
+        System.out.printf("Choice: ");
+        return in.nextLine();
+    }
+
+    static void setServerIP(Scanner in) {
         System.out.printf("Please enter the server endpoint: ");
-        serverHostname = in.nextLine();
+        serverIP = in.nextLine();
     }
 
     static void setServerPort(Scanner in) {
@@ -51,7 +87,7 @@ public class BroadcastClass {
     static void startClient() {
 
         try ( // When you start the client program, the server should already be running and listening to the port, waiting for a client to request a connection
-              Socket kkSocket = new Socket(serverHostname, serverPort);
+              Socket kkSocket = new Socket(serverIP, serverPort);
               //TODO start ffmpeg play and wait for data to come
 
               PrintWriter out = new PrintWriter(kkSocket.getOutputStream(), true);
@@ -75,18 +111,16 @@ public class BroadcastClass {
                 }
             }
         } catch (UnknownHostException e) {
-            System.err.println("Don't know about host " + serverHostname);
+            System.err.println("Don't know about host " + serverIP);
             System.exit(1);
         } catch (IOException e) {
             System.err.println("Couldn't get I/O for the connection to " +
-                    serverHostname);
+                    serverIP);
             System.exit(1);
         }
     }
 
     static void startServer() {
-
-        // wait for GET request to {our IP}/stream/request, and begin streaming the data
 
         try (
                 ServerSocket serverSocket = new ServerSocket(serverPort);     // if it cannot use te specified port because it's already used, it throws an error
@@ -121,7 +155,7 @@ public class BroadcastClass {
 
     private static void cmd() {
         ProcessBuilder builder = new ProcessBuilder(
-                "cmd.exe", "/c", "cd " + LOCATION_OF_FFMPEG_BIN + " && ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + clientIP);
+                "cmd.exe", "/c", "cd " + ffmpegBinLocation + " && ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + clientIP);
 
         builder.redirectErrorStream(true);
         Process p = null;
