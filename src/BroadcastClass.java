@@ -12,8 +12,9 @@ import java.util.Scanner;
 
 public class BroadcastClass {
 
-    private static String serverIP = "25.90.15.98";
-    private static Integer serverPort = 4444;
+    private static final String LOCATION_OF_FFMPEG_BIN = "C:\\Users\\Tomi\\Downloads\\ffmpeg-20200515-b18fd2b-win64-static\\bin";
+    private static String serverHostname = "";
+    private static Integer serverPort = null;
     private static String clientIP = "25.88.153.87";
 
     public static void main(String[] args) {
@@ -21,14 +22,14 @@ public class BroadcastClass {
         System.out.println("Please choose role:\n1 - server\n2 - client");
         System.out.printf("Choice: ");
         Scanner in = new Scanner(System.in);
-
+        cmd();
         while (true) {
             String input = in.nextLine();
             if (input.equals("1")) {
                 setServerPort(in);
                 startServer();
             } else if (input.equals("2")) {
-                setServerIP(in);
+                setServerHostname(in);
                 setServerPort(in);
                 startClient();
             } else {
@@ -38,9 +39,9 @@ public class BroadcastClass {
         }
     }
 
-    static void setServerIP(Scanner in) {
-        System.out.printf("Please enter the IP address of the server: ");
-        serverIP = in.nextLine();
+    static void setServerHostname(Scanner in) {
+        System.out.printf("Please enter the server endpoint: ");
+        serverHostname = in.nextLine();
     }
 
     static void setServerPort(Scanner in) {
@@ -49,13 +50,14 @@ public class BroadcastClass {
     }
 
     static void startClient() {
-        //TODO send GET request to serverIP:portNumber, then start ffmpeg play and wait for data to come
 
         try ( // When you start the client program, the server should already be running and listening to the port, waiting for a client to request a connection
-                Socket kkSocket = new Socket(serverIP, serverPort);
-                PrintWriter out = new PrintWriter(kkSocket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(
-                        new InputStreamReader(kkSocket.getInputStream()));
+              Socket kkSocket = new Socket(serverHostname, serverPort);
+              //TODO start ffmpeg play and wait for data to come
+
+              PrintWriter out = new PrintWriter(kkSocket.getOutputStream(), true);
+              BufferedReader in = new BufferedReader(
+                      new InputStreamReader(kkSocket.getInputStream()));
         ) {
             BufferedReader stdIn =
                     new BufferedReader(new InputStreamReader(System.in));
@@ -74,17 +76,17 @@ public class BroadcastClass {
                 }
             }
         } catch (UnknownHostException e) {
-            System.err.println("Don't know about host " + serverIP);
+            System.err.println("Don't know about host " + serverHostname);
             System.exit(1);
         } catch (IOException e) {
             System.err.println("Couldn't get I/O for the connection to " +
-                    serverIP);
+                    serverHostname);
             System.exit(1);
         }
     }
 
     static void startServer() {
-        //TODO start http server
+
         // wait for GET request to {our IP}/stream/request, and begin streaming the data
 
         try (
@@ -95,6 +97,7 @@ public class BroadcastClass {
                 BufferedReader in = new BufferedReader(
                         new InputStreamReader(clientSocket.getInputStream()));
         ) {
+            cmd();
             String inputLine, outputLine;
 
             // Initiate conversation with client
@@ -105,8 +108,9 @@ public class BroadcastClass {
             while ((inputLine = in.readLine()) != null) {
                 outputLine = kkp.processInput(inputLine);
                 out.println(outputLine);
-                if (outputLine.equals("Bye."))
+                if (outputLine.equals("Bye.")) {
                     break;
+                }
             }
         } catch (IOException e) {
             System.out.println("Exception caught when trying to listen on port "
@@ -114,28 +118,30 @@ public class BroadcastClass {
             System.out.println(e.getMessage());
         }
 
-//            ProcessBuilder builder = new ProcessBuilder(
-//                    "cmd.exe", "/c", "cd \"C:\\Users\\Korisnik\\Desktop\\ffmpeg-20200522-38490cb-win64-static\\bin>\" && ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + clientIP);
-//            builder.redirectErrorStream(true);
-//            Process p = null;
-//            try {
-//
-//                p = builder.start();
-//                BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
-//                String line;
-//                while (true) {
-//                    line = r.readLine();
-//                    if (line == null) {
-//                        break;
-//                    }
-//                    System.out.println(line);
-//                }
-//
-//
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
+    }
 
+    private static void cmd() {
+        ProcessBuilder builder = new ProcessBuilder(
+                "cmd.exe", "/c", "cd " + LOCATION_OF_FFMPEG_BIN + " && ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + clientIP);
+
+        builder.redirectErrorStream(true);
+        Process p = null;
+        try {
+            p = builder.start();
+            BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line;
+            while (true) {
+                line = r.readLine();
+                if (line == null) {
+                    break;
+                }
+                System.out.println(line);
+            }
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void connectToServer() {
