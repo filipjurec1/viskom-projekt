@@ -15,14 +15,13 @@ public class BroadcastClass {
     private static final String LOCATION_OF_FFMPEG_BIN = "C:\\Users\\Tomi\\Downloads\\ffmpeg-20200515-b18fd2b-win64-static\\bin";
     private static String serverHostname = "";
     private static Integer serverPort = null;
-    private static String clientIP = "25.88.153.87";
+    private static String clientIP = "25.90.15.98";
 
     public static void main(String[] args) {
 
         System.out.println("Please choose role:\n1 - server\n2 - client");
         System.out.printf("Choice: ");
         Scanner in = new Scanner(System.in);
-        cmd();
         while (true) {
             String input = in.nextLine();
             if (input.equals("1")) {
@@ -135,7 +134,7 @@ public class BroadcastClass {
                 if (line == null) {
                     break;
                 }
-                System.out.println(line);
+//                System.out.println(line);
             }
 
 
