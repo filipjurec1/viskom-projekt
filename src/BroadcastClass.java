@@ -1,9 +1,6 @@
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -24,7 +21,7 @@ public class BroadcastClass {
     private static final String IP_TOMISLAV = "25.88.153.87";
     private static final String IP_FILIP = "25.90.15.98";
 
-//    private static String openFfmpegFolder = "cd " + ffmpegBinLocation;
+    //    private static String openFfmpegFolder = "cd " + ffmpegBinLocation;
     private static String ffmpegCommandStreamSineSignal =
             "ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + IP_FILIP + ":" + clientPort + " -sdp_file audio.sdp";
     private static String ffmpegCommandStreamWebcamVideo = "ffmpeg -f dshow -i video=\"HD WebCam\" rtp://" + serverIP;
@@ -172,17 +169,15 @@ public class BroadcastClass {
     }
 
     private static void cmd(String param) {
-    	ProcessBuilder builder = null;
+        ProcessBuilder builder = null;
 
-    	if(param.equals("server")) {
-    		 builder = new ProcessBuilder(
-    	            "cmd.exe", "/c", "cd " + LOCATION_OF_FFMPEG_BIN_TOMISLAV + " && " + ffmpegCommandStreamSineSignal);
-    	}
-    	else if(param.equals("client")) {
+        if (param.equals("server")) {
             builder = new ProcessBuilder(
-            		"cmd.exe", "/c", "cd " + LOCATION_OF_FFMPEG_BIN_FILIP + " && ffplay rtp://" + clientIP + ":" + clientPort);
-            }
-    	else return;
+                    "cmd.exe", "/c", "cd " + LOCATION_OF_FFMPEG_BIN_TOMISLAV + " && " + ffmpegCommandStreamSineSignal);
+        } else if (param.equals("client")) {
+            builder = new ProcessBuilder(
+                    "cmd.exe", "/c", "cd " + LOCATION_OF_FFMPEG_BIN_FILIP + " && ffplay rtp://" + clientIP + ":" + clientPort);
+        } else return;
 
         builder.redirectErrorStream(true);
         Process p = null;
