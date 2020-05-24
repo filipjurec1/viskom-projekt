@@ -104,7 +104,8 @@ public class BroadcastClass {
                         new InputStreamReader(socket.getInputStream()));
         ) {
             System.out.println("* Connected to server!");
-            System.out.println("* Your port is " + socket.getLocalPort());
+            clientPort = socket.getLocalPort();
+            System.out.println("* Your port is " + clientPort);
 
             BufferedReader stdIn =
                     new BufferedReader(new InputStreamReader(System.in));
@@ -179,7 +180,7 @@ public class BroadcastClass {
     	}
     	else if(param.equals("client")) {
             builder = new ProcessBuilder(
-            		"cmd.exe", "/c", "cd " + LOCATION_OF_FFMPEG_BIN_FILIP + " && ffplay rtp://" + serverIP + ":" + serverPort);
+            		"cmd.exe", "/c", "cd " + LOCATION_OF_FFMPEG_BIN_FILIP + " && ffplay rtp://" + clientIP + ":" + clientPort);
             }
     	else return;
 
