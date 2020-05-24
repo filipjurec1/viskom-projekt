@@ -23,53 +23,60 @@ public class BroadcastClass {
     private static String ffmpegBinLocation = "";
 
     public static void main(String[] args) {
-
-        System.out.println("Please choose role:\n1 - server\n2 - client");
-        System.out.printf("Choice: ");
         Scanner in = new Scanner(System.in);
-        while (true) {
-            String input = in.nextLine();
-            if (input.equals("1")) {
-                setServerDataBasedOnUser(in);
+
+        setDataAndStartProgram(in);
+    }
+
+    static void setDataAndStartProgram(Scanner in) {
+        String user = retrieveUser(in);
+        switch (user) {
+            case "1":
+                serverIP = IP_FILIP;
+                clientIP = IP_TOMISLAV;
+                ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_FILIP;
                 startServer();
-            } else if (input.equals("2")) {
-                setClientDataBasedOnUser(in);
+                break;
+            case "2":
+                serverIP = IP_TOMISLAV;
+                clientIP = IP_FILIP;
+                ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_FILIP;
                 startClient();
-            } else {
-                System.out.println("Input must be a number, either 1 or 2!");
-                continue;
-            }
-        }
-    }
-
-    static void setServerDataBasedOnUser(Scanner in) {
-        String user = retrieveUser(in);
-        if (user.equals("1")) {
-            serverIP = IP_TOMISLAV;
-            clientIP = IP_FILIP;
-            ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_TOMISLAV;
-        } else {
-            serverIP = IP_FILIP;
-            clientIP = IP_TOMISLAV;
-            ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_FILIP;
-        }
-    }
-
-    static void setClientDataBasedOnUser(Scanner in) {
-        String user = retrieveUser(in);
-        if (user.equals("1")) {
-            serverIP = IP_FILIP;
-            clientIP = IP_TOMISLAV;
-            ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_TOMISLAV;
-        } else {
-            serverIP = IP_TOMISLAV;
-            clientIP = IP_FILIP;
-            ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_FILIP;
+                break;
+            case "3":
+                serverIP = IP_TOMISLAV;
+                clientIP = IP_FILIP;
+                ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_TOMISLAV;
+                startServer();
+                break;
+            case "4":
+                serverIP = IP_FILIP;
+                clientIP = IP_TOMISLAV;
+                ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_TOMISLAV;
+                startClient();
+                break;
+            case "5":
+                startServer();
+                break;
+            case "6":
+                setServerIP(in);
+                startClient();
+                break;
+            default:
+                System.out.println("Illegal value was entered. Program will end.");
+                System.exit(0);
+                break;
         }
     }
 
     static String retrieveUser(Scanner in) {
-        System.out.printf("Please select user:\n1 - Tomislav\n2 - Filip");
+        System.out.println();
+        System.out.println("1 - Filip is the server");
+        System.out.println("2 - Filip is the client");
+        System.out.println("3 - Tomislav is the server");
+        System.out.println("4 - Tomislav is the client");
+        System.out.println("5 - Custom user is server");
+        System.out.println("6 - Custom user is client");
         System.out.printf("Choice: ");
         return in.nextLine();
     }
@@ -79,37 +86,34 @@ public class BroadcastClass {
         serverIP = in.nextLine();
     }
 
-    static void setServerPort(Scanner in) {
-        System.out.printf("Please enter the port number of the server: ");
-        serverPort = Integer.parseInt(in.nextLine());
-    }
-
     static void startClient() {
+        System.out.println("\nClient is starting...");
 
-        try ( // When you start the client program, the server should already be running and listening to the port, waiting for a client to request a connection
-              Socket kkSocket = new Socket(serverIP, serverPort);
-              //TODO start ffmpeg play and wait for data to come
-
-              PrintWriter out = new PrintWriter(kkSocket.getOutputStream(), true);
-              BufferedReader in = new BufferedReader(
-                      new InputStreamReader(kkSocket.getInputStream()));
+        try (
+                // When you start the client program, the server should already be running and listening to the port, waiting for a client to request a connection
+                Socket kkSocket = new Socket(serverIP, serverPort);
+                PrintWriter out = new PrintWriter(kkSocket.getOutputStream(), true);
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(kkSocket.getInputStream()));
         ) {
+            System.out.println("* Connected to server!");
+
             BufferedReader stdIn =
                     new BufferedReader(new InputStreamReader(System.in));
-            String fromServer;
-            String fromUser;
+            //TODO start ffmpeg play and wait for data to come
 
+            String fromServer;
             while ((fromServer = in.readLine()) != null) {
                 System.out.println("Server: " + fromServer);
-                if (fromServer.equals("Bye."))
-                    break;
-
-                fromUser = stdIn.readLine();
-                if (fromUser != null) {
-                    System.out.println("Client: " + fromUser);
-                    out.println(fromUser);
-                }
             }
+
+//                String fromUser;
+//                fromUser = stdIn.readLine();
+//                if (fromUser != null) {
+//                    System.out.println("Client: " + fromUser);
+//                    out.println(fromUser);
+//                }
+//            }
         } catch (UnknownHostException e) {
             System.err.println("Don't know about host " + serverIP);
             System.exit(1);
@@ -121,6 +125,7 @@ public class BroadcastClass {
     }
 
     static void startServer() {
+        System.out.println("\nServer is starting...");
 
         try (
                 ServerSocket serverSocket = new ServerSocket(serverPort);     // if it cannot use te specified port because it's already used, it throws an error
@@ -130,21 +135,23 @@ public class BroadcastClass {
                 BufferedReader in = new BufferedReader(
                         new InputStreamReader(clientSocket.getInputStream()));
         ) {
+            System.out.println("* Client connected!");
+
             cmd();
-            String inputLine, outputLine;
 
-            // Initiate conversation with client
-            KnockKnockProtocol kkp = new KnockKnockProtocol();
-            outputLine = kkp.processInput(null);
-            out.println(outputLine);
-
-            while ((inputLine = in.readLine()) != null) {
-                outputLine = kkp.processInput(inputLine);
-                out.println(outputLine);
-                if (outputLine.equals("Bye.")) {
-                    break;
-                }
-            }
+//            String inputLine, outputLine;
+//            //  Initiate conversation with client
+//            KnockKnockProtocol kkp = new KnockKnockProtocol();
+//            outputLine = kkp.processInput(null);
+//            out.println(outputLine);
+//
+//            while ((inputLine = in.readLine()) != null) {
+//                outputLine = kkp.processInput(inputLine);
+//                out.println(outputLine);
+//                if (outputLine.equals("Bye.")) {
+//                    break;
+//                }
+//            }
         } catch (IOException e) {
             System.out.println("Exception caught when trying to listen on port "
                     + serverPort + " or listening for a connection.");
@@ -155,12 +162,13 @@ public class BroadcastClass {
 
     private static void cmd() {
         ProcessBuilder builder = new ProcessBuilder(
-                "cmd.exe", "/c", "cd " + ffmpegBinLocation + " && ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + clientIP);
+                "cmd.exe", "/c", "cd " + ffmpegBinLocation + " && ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + clientIP + " -sdp_file audio.sdp");
 
         builder.redirectErrorStream(true);
         Process p = null;
         try {
             p = builder.start();
+            System.out.println("* cmd command executed!");
             BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line;
             while (true) {
