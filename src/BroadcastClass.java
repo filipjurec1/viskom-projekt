@@ -20,7 +20,7 @@ public class BroadcastClass {
     private static String serverIP = "";
     private static String clientIP = "";
     private static Integer serverPort = 4445;
-    private static Integer clientPort = null;
+    private static Integer clientPort = 63353;
     private static String ffmpegBinLocation = "";
 
     public static void main(String[] args) {
@@ -102,6 +102,7 @@ public class BroadcastClass {
             BufferedReader stdIn =
                     new BufferedReader(new InputStreamReader(System.in));
             //TODO start ffmpeg play and wait for data to come
+            cmd("client");
 
             String fromServer;
             while ((fromServer = in.readLine()) != null) {
@@ -137,9 +138,9 @@ public class BroadcastClass {
                         new InputStreamReader(clientSocket.getInputStream()));
         ) {
             System.out.println("* Client " + clientSocket.getInetAddress() + ":" + clientSocket.getPort() + " connected!");
-            clientPort = clientSocket.getPort();
+            //clientPort = clientSocket.getPort();
 
-            cmd();
+            cmd("server");
 
 //            String inputLine, outputLine;
 //            //  Initiate conversation with client
@@ -162,10 +163,19 @@ public class BroadcastClass {
 
     }
 
-    private static void cmd() {
-        ProcessBuilder builder = new ProcessBuilder(
-                "cmd.exe", "/c", "cd " + ffmpegBinLocation + " && ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + serverIP + ":" + serverPort + " -sdp_file audio.sdp");
-
+    private static void cmd(String param) {
+    	ProcessBuilder builder = null;
+    	
+    	if(param.equals("server")) {
+    		 builder = new ProcessBuilder(
+    	            "cmd.exe", "/c", "cd " + ffmpegBinLocation + " && ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + serverIP + ":" + serverPort + " -sdp_file audio.sdp");
+    	}
+    	else if(param.equals("client")) {
+            builder = new ProcessBuilder(
+            		"cmd.exe", "/c", "cd \"C:\\Users\\Korisnik\\Desktop\\ffmpeg-20200522-38490cb-win64-static\\bin>\" && ffplay rtp://" + clientIP + ":" + clientPort);
+            }
+    	else return;
+       
         builder.redirectErrorStream(true);
         Process p = null;
         try {
@@ -186,35 +196,5 @@ public class BroadcastClass {
             e.printStackTrace();
         }
     }
-
-    public static void connectToServer() {
-        //Try connect to the server on an unused port eg 9991. A successful connection will return a socket
-        try (ServerSocket serverSocket = new ServerSocket(9991)) {
-            Socket connectionSocket = serverSocket.accept();
-
-            //Create Input&Outputstreams for the connection
-            InputStream inputToServer = connectionSocket.getInputStream();
-            OutputStream outputFromServer = connectionSocket.getOutputStream();
-
-            Scanner scanner = new Scanner(inputToServer, "UTF-8");
-            PrintWriter serverPrintOut = new PrintWriter(new OutputStreamWriter(outputFromServer, "UTF-8"), true);
-
-            serverPrintOut.println("Hello World! Enter Peace to exit.");
-
-            //Have the server take input from the client and echo it back
-            //This should be placed in a loop that listens for a terminator text e.g. bye
-            boolean done = false;
-
-            while (!done && scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                serverPrintOut.println("Echo from <Your Name Here> Server: " + line);
-
-                if (line.toLowerCase().trim().equals("peace")) {
-                    done = true;
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    
 }
