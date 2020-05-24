@@ -168,7 +168,7 @@ public class BroadcastClass {
     	
     	if(param.equals("server")) {
     		 builder = new ProcessBuilder(
-    	            "cmd.exe", "/c", "cd " + ffmpegBinLocation + " && ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + serverIP + ":" + serverPort + " -sdp_file audio.sdp");
+    	            "cmd.exe", "/c", "cd " + ffmpegBinLocation + " && ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + clientIP + ":" + clientPort + " -sdp_file audio.sdp");
     	}
     	else if(param.equals("client")) {
             builder = new ProcessBuilder(
