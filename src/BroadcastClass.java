@@ -12,16 +12,22 @@ import java.util.Scanner;
 
 public class BroadcastClass {
 
+    private static String serverIP = "";
+    private static String clientIP = "";
+    private static Integer serverPort = 4445;
+    private static Integer clientPort = 63353;
+
+    private static String ffmpegBinLocation = "";
+
     private static final String LOCATION_OF_FFMPEG_BIN_TOMISLAV = "C:\\Users\\Tomi\\Downloads\\ffmpeg-20200515-b18fd2b-win64-static\\bin";
     private static final String LOCATION_OF_FFMPEG_BIN_FILIP = "C:\\Users\\Korisnik\\Desktop\\ffmpeg-20200522-38490cb-win64-static\\bin";
     private static final String IP_TOMISLAV = "25.88.153.87";
     private static final String IP_FILIP = "25.90.15.98";
 
-    private static String serverIP = "";
-    private static String clientIP = "";
-    private static Integer serverPort = 4445;
-    private static Integer clientPort = 63353;
-    private static String ffmpegBinLocation = "";
+    private static String openFfmpegFolder = "cd " + ffmpegBinLocation;
+    private static String ffmpegCommandStreamSineSignal =
+            "ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + IP_FILIP + ":" + clientPort + " -sdp_file audio.sdp";
+    private static String ffmpegCommandStreamWebcamVideo = "ffmpeg -f dshow -i video=\"HD WebCam\" rtp://" + serverIP;
 
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
@@ -138,7 +144,7 @@ public class BroadcastClass {
                         new InputStreamReader(clientSocket.getInputStream()));
         ) {
             System.out.println("* Client " + clientSocket.getInetAddress() + ":" + clientSocket.getPort() + " connected!");
-            //clientPort = clientSocket.getPort();
+            clientPort = clientSocket.getPort();
 
             cmd("server");
 
@@ -165,17 +171,17 @@ public class BroadcastClass {
 
     private static void cmd(String param) {
     	ProcessBuilder builder = null;
-    	
+
     	if(param.equals("server")) {
     		 builder = new ProcessBuilder(
-    	            "cmd.exe", "/c", "cd " + ffmpegBinLocation + " && ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + clientIP + ":" + clientPort + " -sdp_file audio.sdp");
+    	            "cmd.exe", "/c", openFfmpegFolder + " && " + ffmpegCommandStreamSineSignal);
     	}
     	else if(param.equals("client")) {
             builder = new ProcessBuilder(
-            		"cmd.exe", "/c", "cd \"C:\\Users\\Korisnik\\Desktop\\ffmpeg-20200522-38490cb-win64-static\\bin>\" && ffplay rtp://" + clientIP + ":" + clientPort);
+            		"cmd.exe", "/c", "cd " + LOCATION_OF_FFMPEG_BIN_FILIP + " && ffplay rtp://" + serverIP + ":" + serverPort);
             }
     	else return;
-       
+
         builder.redirectErrorStream(true);
         Process p = null;
         try {
@@ -196,5 +202,35 @@ public class BroadcastClass {
             e.printStackTrace();
         }
     }
-    
+
+    public static void connectToServer() {
+        //Try connect to the server on an unused port eg 9991. A successful connection will return a socket
+        try (ServerSocket serverSocket = new ServerSocket(9991)) {
+            Socket connectionSocket = serverSocket.accept();
+
+            //Create Input&Outputstreams for the connection
+            InputStream inputToServer = connectionSocket.getInputStream();
+            OutputStream outputFromServer = connectionSocket.getOutputStream();
+
+            Scanner scanner = new Scanner(inputToServer, "UTF-8");
+            PrintWriter serverPrintOut = new PrintWriter(new OutputStreamWriter(outputFromServer, "UTF-8"), true);
+
+            serverPrintOut.println("Hello World! Enter Peace to exit.");
+
+            //Have the server take input from the client and echo it back
+            //This should be placed in a loop that listens for a terminator text e.g. bye
+            boolean done = false;
+
+            while (!done && scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                serverPrintOut.println("Echo from <Your Name Here> Server: " + line);
+
+                if (line.toLowerCase().trim().equals("peace")) {
+                    done = true;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
