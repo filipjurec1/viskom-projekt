@@ -24,7 +24,7 @@ public class BroadcastClass {
     private static final String IP_TOMISLAV = "25.88.153.87";
     private static final String IP_FILIP = "25.90.15.98";
 
-    private static String openFfmpegFolder = "cd " + ffmpegBinLocation;
+//    private static String openFfmpegFolder = "cd " + ffmpegBinLocation;
     private static String ffmpegCommandStreamSineSignal =
             "ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + IP_FILIP + ":" + clientPort + " -sdp_file audio.sdp";
     private static String ffmpegCommandStreamWebcamVideo = "ffmpeg -f dshow -i video=\"HD WebCam\" rtp://" + serverIP;
@@ -98,12 +98,13 @@ public class BroadcastClass {
 
         try (
                 // When you start the client program, the server should already be running and listening to the port, waiting for a client to request a connection
-                Socket kkSocket = new Socket(serverIP, serverPort);
-                PrintWriter out = new PrintWriter(kkSocket.getOutputStream(), true);
+                Socket socket = new Socket(serverIP, serverPort);
+                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
                 BufferedReader in = new BufferedReader(
-                        new InputStreamReader(kkSocket.getInputStream()));
+                        new InputStreamReader(socket.getInputStream()));
         ) {
             System.out.println("* Connected to server!");
+            System.out.println("* Your port is " + socket.getLocalPort());
 
             BufferedReader stdIn =
                     new BufferedReader(new InputStreamReader(System.in));
@@ -174,7 +175,7 @@ public class BroadcastClass {
 
     	if(param.equals("server")) {
     		 builder = new ProcessBuilder(
-    	            "cmd.exe", "/c", openFfmpegFolder + " && " + ffmpegCommandStreamSineSignal);
+    	            "cmd.exe", "/c", "cd " + LOCATION_OF_FFMPEG_BIN_TOMISLAV + " && " + ffmpegCommandStreamSineSignal);
     	}
     	else if(param.equals("client")) {
             builder = new ProcessBuilder(
@@ -194,7 +195,7 @@ public class BroadcastClass {
                 if (line == null) {
                     break;
                 }
-//                System.out.println(line);
+                System.out.println(line);
             }
 
 
@@ -203,34 +204,4 @@ public class BroadcastClass {
         }
     }
 
-    public static void connectToServer() {
-        //Try connect to the server on an unused port eg 9991. A successful connection will return a socket
-        try (ServerSocket serverSocket = new ServerSocket(9991)) {
-            Socket connectionSocket = serverSocket.accept();
-
-            //Create Input&Outputstreams for the connection
-            InputStream inputToServer = connectionSocket.getInputStream();
-            OutputStream outputFromServer = connectionSocket.getOutputStream();
-
-            Scanner scanner = new Scanner(inputToServer, "UTF-8");
-            PrintWriter serverPrintOut = new PrintWriter(new OutputStreamWriter(outputFromServer, "UTF-8"), true);
-
-            serverPrintOut.println("Hello World! Enter Peace to exit.");
-
-            //Have the server take input from the client and echo it back
-            //This should be placed in a loop that listens for a terminator text e.g. bye
-            boolean done = false;
-
-            while (!done && scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                serverPrintOut.println("Echo from <Your Name Here> Server: " + line);
-
-                if (line.toLowerCase().trim().equals("peace")) {
-                    done = true;
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }
