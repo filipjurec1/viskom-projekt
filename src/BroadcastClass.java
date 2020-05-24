@@ -20,6 +20,7 @@ public class BroadcastClass {
     private static String serverIP = "";
     private static String clientIP = "";
     private static Integer serverPort = 4445;
+    private static Integer clientPort = null;
     private static String ffmpegBinLocation = "";
 
     public static void main(String[] args) {
@@ -135,7 +136,8 @@ public class BroadcastClass {
                 BufferedReader in = new BufferedReader(
                         new InputStreamReader(clientSocket.getInputStream()));
         ) {
-            System.out.println("* Client connected!");
+            System.out.println("* Client " + clientSocket.getInetAddress() + ":" + clientSocket.getPort() + " connected!");
+            clientPort = clientSocket.getPort();
 
             cmd();
 
@@ -162,7 +164,7 @@ public class BroadcastClass {
 
     private static void cmd() {
         ProcessBuilder builder = new ProcessBuilder(
-                "cmd.exe", "/c", "cd " + ffmpegBinLocation + " && ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + clientIP + " -sdp_file audio.sdp");
+                "cmd.exe", "/c", "cd " + ffmpegBinLocation + " && ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + serverIP + ":" + serverPort + " -sdp_file audio.sdp");
 
         builder.redirectErrorStream(true);
         Process p = null;
