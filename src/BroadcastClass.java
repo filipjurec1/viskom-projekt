@@ -11,7 +11,7 @@ public class BroadcastClass {
 
     private static String serverIP = "";
     private static String clientIP = "";
-    private static Integer communicationPort = 12345;
+    private static Integer serverTcpPort = 12345;
     private static Integer rtpPort = 12346;
     private static String ffmpegBinLocation = "";
 
@@ -21,10 +21,10 @@ public class BroadcastClass {
     private static final String IP_FILIP = "25.90.15.98";
     private static final String LOCALHOST = "127.0.0.1";
 
-    private static String ffmpegCommandStreamSineSignal =
-            "ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + clientIP + ":" + communicationPort;
-    private static String ffplayCommandGetSound = "ffplay rtp://" + serverIP + ":" + communicationPort;
     private static String ffmpegCommandStreamWebcamVideo = "ffmpeg -f dshow -i video=\"HD WebCam\" -f rtp rtp://" + clientIP + " -sdp_file webcam_sdp";
+    private static String ffmpegCommandStreamSineSignal =
+            "ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + clientIP + ":" + rtpPort;
+    private static String ffplayCommandGetSound = "ffplay rtp://" + serverIP + ":" + rtpPort;//TODO if not working, clientIP
     private static String ffplayCommandGetWebcamVideo = "ffplay -protocol_whitelist \"file,rtp,udp\" webcam_sdp";
 
     public static void main(String[] args) {
@@ -98,7 +98,7 @@ public class BroadcastClass {
         try (
                 // When you start the client program, the server should already be running and listening to the port,
                 // waiting for a client to request a connection
-                Socket socket = new Socket(serverIP, rtpPort)
+                Socket socket = new Socket(serverIP, serverTcpPort)
         ) {
             System.out.println("* Connected to server!\n");
 
@@ -138,7 +138,7 @@ public class BroadcastClass {
 
         try (
                 // If it cannot use te specified port because it's already used, it throws an error
-                ServerSocket serverSocket = new ServerSocket(rtpPort);
+                ServerSocket serverSocket = new ServerSocket(serverTcpPort);
                 // It waits until a client starts up and requests a connection to the IP and port of this server
                 Socket clientSocket = serverSocket.accept();
                 PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
@@ -171,7 +171,7 @@ public class BroadcastClass {
 
         } catch (IOException e) {
             System.out.println("Exception caught when trying to listen on port "
-                    + rtpPort + " or listening for a connection.");
+                    + serverTcpPort + " or listening for a connection.");
             System.out.println(e.getMessage());
         }
     }
