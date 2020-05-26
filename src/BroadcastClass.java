@@ -21,11 +21,27 @@ public class BroadcastClass {
     private static final String IP_FILIP = "25.90.15.98";
     private static final String LOCALHOST = "127.0.0.1";
 
-    private static String ffmpegCommandStreamWebcamVideo = "ffmpeg -f dshow -i video=\"HD WebCam\" -f rtp rtp://" + clientIP + " -sdp_file webcam_sdp";
-    private static String ffmpegCommandStreamSineSignal =
-            "ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + clientIP + ":" + rtpPort;
-    private static String ffplayCommandGetSound = "ffplay rtp://" + serverIP + ":" + rtpPort;//TODO if not working, clientIP
-    private static String ffplayCommandGetWebcamVideo = "ffplay -protocol_whitelist \"file,rtp,udp\" webcam_sdp";
+//    private static String ffmpegRecordVideoAudio = "ffmpeg -f dshow -i video=\"HD WebCam\":audio=\"Microphone Array (Intel® Smart Sound Technology (Intel® SST))\"";
+
+    // Sending
+    private static String ffmpegStreamWebcamVideo
+            = "ffmpeg -f dshow -i video=\"HD WebCam\" -vcodec mpeg4 -f mpegts -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp"; //25.105.181.67:12346
+    private static String ffmpegStreamWebcamVideoAndAudio
+            = "ffmpeg -f dshow -i video=\"HD WebCam\":audio=\"Microphone Array (Intel® Smart Sound Technology (Intel® SST))\" -f rtp rtp://" + clientIP + ":" + rtpPort
+            + " -acodec libopus -f rtp rtp://" + clientIP + ":" + rtpPort + 1 + " -sdp_file file.sdp"; // 25.105.181.67:12346
+    private static String ffmpegStreamLocalVideo =
+            "ffmpeg -re -i video.mp4 -an -c:v copy -f rtp rtp://25.105.181.67:12346 -sdp_file file.sdp";
+    private static String ffmpegStreamAudio =
+            "ffmpeg -f dshow -i audio=\"Microphone Array (Intel® Smart Sound Technology (Intel® SST))\"" +
+                    " -acodec libopus -f rtp rtp://25.105.181.67:12346 -sdp_file file.sdp"; //TODO ne radi, klijent zablokira
+//    private static String ffmpegCommandStreamSineSignal =
+//            "ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + clientIP + ":" + rtpPort;
+
+    //Receiving
+//    private static String ffplayCommandGetSound
+//            = "ffplay rtp://" + serverIP + ":" + rtpPort;//TODO neće se koristiti
+    private static String ffplayCommand
+            = "ffplay -protocol_whitelist \"file,rtp,udp\" file.sdp";
 
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
@@ -101,24 +117,21 @@ public class BroadcastClass {
                 Socket socket = new Socket(serverIP, serverTcpPort)
         ) {
             System.out.println("* Connected to server!\n");
+            //TODO receive sdp file at this point
 
             System.out.println("Choose action:");
-            System.out.println("1 - Receive video stream");
-            System.out.println("2 - Receive audio stream");
-            System.out.println("3 - Receive video and audio streams");
+            System.out.println("1 - Receive stream");
+            System.out.println("2 - Receive video and audio streams");
             System.out.print("Choice: ");
             switch (Integer.parseInt(cmdInput.nextLine())) {
                 case 1:
-                    cmd(ffplayCommandGetWebcamVideo);
+                    cmd(ffplayCommand);
                     break;
                 case 2:
-                    cmd(ffplayCommandGetSound);
-                    break;
-                case 3:
-                    Thread videoThread = new Thread(() -> cmd(ffplayCommandGetSound));
+                    Thread videoThread = new Thread(() -> cmd(ffplayCommand));
                     videoThread.start();
-                    Thread audioThread = new Thread(() -> cmd(ffplayCommandGetWebcamVideo));
-                    audioThread.start();
+//                    Thread audioThread = new Thread(() -> cmd(ffplayCommand));
+//                    audioThread.start();
                     break;
                 default:
                     System.err.println("Wrong value was input, exiting program.");
@@ -148,26 +161,31 @@ public class BroadcastClass {
             System.out.println("* Client " + clientSocket.getInetAddress() + ":" + clientSocket.getPort() + " connected!");
 
             System.out.println("Choose action:");
-            System.out.println("1 - Send video stream");
-            System.out.println("2 - Send audio stream");
-            System.out.println("3 - Send video and audio streams");
+            System.out.println("1 - Send webcam video stream");
+            System.out.println("2 - Send microphone audio stream");
+            System.out.println("3 - Send webcam video and audio streams");
+            System.out.println("4 - Send local video stream");
             System.out.print("Choice: ");
             switch (Integer.parseInt(cmdInput.nextLine())) {
                 case 1:
-                    cmd(ffmpegCommandStreamWebcamVideo);
+                    cmd(ffmpegStreamWebcamVideo);
                     break;
                 case 2:
-                    cmd(ffmpegCommandStreamSineSignal);
+                    cmd(ffmpegStreamAudio);
                     break;
                 case 3:
-                    Thread videoThread = new Thread(() -> cmd(ffmpegCommandStreamWebcamVideo));
+                    Thread videoThread = new Thread(() -> cmd(ffmpegStreamWebcamVideo));
                     videoThread.start();
-                    Thread audioThread = new Thread(() -> cmd(ffmpegCommandStreamSineSignal));
-                    audioThread.start();
+//                    Thread audioThread = new Thread(() -> cmd(ffmpegCommandStreamSineSignal));
+//                    audioThread.start();
+                    break;
+                case 4:
+                    cmd(ffmpegStreamLocalVideo);
                     break;
                 default:
                     System.err.println("Wrong value was input, exiting program.");
             }
+            //TODO send sdp file
 
         } catch (IOException e) {
             System.out.println("Exception caught when trying to listen on port "
