@@ -27,19 +27,15 @@ public class BroadcastClass {
     private static String ffmpegStreamWebcamVideo
             = "ffmpeg -f dshow -i video=\"HD WebCam\" -vcodec mpeg4 -f mpegts -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp"; //25.105.181.67:12346
     private static String ffmpegStreamWebcamVideoAndAudio
-            = "ffmpeg -f dshow -i video=\"HD WebCam\":audio=\"Microphone Array (Intel® Smart Sound Technology (Intel® SST))\" -f rtp rtp://" + clientIP + ":" + rtpPort
-            + " -acodec libopus -f rtp rtp://" + clientIP + ":" + rtpPort + 1 + " -sdp_file file.sdp"; // 25.105.181.67:12346
+            = "ffmpeg -f dshow -i video=\"HD WebCam\":audio=\"Microphone Array (Intel® Smart Sound Technology (Intel® SST))\" -vn -f rtp rtp://" + clientIP + ":" + rtpPort
+            + " -acodec libopus -an -f rtp rtp://" + clientIP + ":" + rtpPort + 1 + " -sdp_file file.sdp"; // 25.105.181.67:12346
     private static String ffmpegStreamLocalVideo =
             "ffmpeg -re -i video.mp4 -an -c:v copy -f rtp rtp://25.105.181.67:12346 -sdp_file file.sdp";
     private static String ffmpegStreamAudio =
             "ffmpeg -f dshow -i audio=\"Microphone Array (Intel® Smart Sound Technology (Intel® SST))\"" +
                     " -acodec libopus -f rtp rtp://25.105.181.67:12346 -sdp_file file.sdp"; //TODO ne radi, klijent zablokira
-//    private static String ffmpegCommandStreamSineSignal =
-//            "ffmpeg -re -f lavfi -i aevalsrc=\"sin(400*2*PI*t)\" -ar 8000 -f mulaw -f rtp rtp://" + clientIP + ":" + rtpPort;
 
     //Receiving
-//    private static String ffplayCommandGetSound
-//            = "ffplay rtp://" + serverIP + ":" + rtpPort;//TODO neće se koristiti
     private static String ffplayCommand
             = "ffplay -protocol_whitelist \"file,rtp,udp\" file.sdp";
 
@@ -121,17 +117,10 @@ public class BroadcastClass {
 
             System.out.println("Choose action:");
             System.out.println("1 - Receive stream");
-            System.out.println("2 - Receive video and audio streams");
             System.out.print("Choice: ");
             switch (Integer.parseInt(cmdInput.nextLine())) {
                 case 1:
                     cmd(ffplayCommand);
-                    break;
-                case 2:
-                    Thread videoThread = new Thread(() -> cmd(ffplayCommand));
-                    videoThread.start();
-//                    Thread audioThread = new Thread(() -> cmd(ffplayCommand));
-//                    audioThread.start();
                     break;
                 default:
                     System.err.println("Wrong value was input, exiting program.");
@@ -174,10 +163,7 @@ public class BroadcastClass {
                     cmd(ffmpegStreamAudio);
                     break;
                 case 3:
-                    Thread videoThread = new Thread(() -> cmd(ffmpegStreamWebcamVideo));
-                    videoThread.start();
-//                    Thread audioThread = new Thread(() -> cmd(ffmpegCommandStreamSineSignal));
-//                    audioThread.start();
+                    Thread videoThread = new Thread(() -> cmd(ffmpegStreamWebcamVideoAndAudio));
                     break;
                 case 4:
                     cmd(ffmpegStreamLocalVideo);
@@ -185,7 +171,6 @@ public class BroadcastClass {
                 default:
                     System.err.println("Wrong value was input, exiting program.");
             }
-            //TODO send sdp file
 
         } catch (IOException e) {
             System.out.println("Exception caught when trying to listen on port "
