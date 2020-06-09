@@ -25,15 +25,15 @@ public class BroadcastClass {
 
     // Sending
     private static String ffmpegStreamWebcamVideo
-            = "ffmpeg -f dshow -i video=\"HD WebCam\" -vcodec mpeg4 -f mpegts -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp"; //25.105.181.67:12346
+            = "ffmpeg -f dshow -i video=\"HD WebCam\" -c:v libx264 -f mpegts -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp"; //25.105.181.67:12346
     private static String ffmpegStreamWebcamVideoAndAudio
             = "ffmpeg -f dshow -i video=\"HD WebCam\":audio=\"Microphone Array (Intel® Smart Sound Technology (Intel® SST))\" -vn -f rtp rtp://" + clientIP + ":" + rtpPort
             + " -acodec libopus -an -f rtp rtp://" + clientIP + ":" + rtpPort + 1 + " -sdp_file file.sdp"; // 25.105.181.67:12346
     private static String ffmpegStreamLocalVideo =
-            "ffmpeg -re -i video.mp4 -an -c:v copy -f rtp rtp://25.105.181.67:12346 -sdp_file file.sdp";
+            "ffmpeg -re -i video.mp4 -an -c:v copy -f rtp rtp://25.90.15.98:12346 -sdp_file file.sdp";
     private static String ffmpegStreamAudio =
             "ffmpeg -f dshow -i audio=\"Microphone Array (Intel® Smart Sound Technology (Intel® SST))\"" +
-                    " -acodec libopus -f rtp rtp://25.105.181.67:12346 -sdp_file file.sdp"; //TODO ne radi, klijent zablokira
+                    " -acodec libopus -f rtp rtp://25.90.15.98:12346 -sdp_file file.sdp";
 
     //Receiving
     private static String ffplayCommand
