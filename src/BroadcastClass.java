@@ -14,92 +14,118 @@ public class BroadcastClass {
     private static Integer serverTcpPort = 12345;
     private static Integer rtpPort = 12346;
     private static String ffmpegBinLocation = "";
+    private static String webcamName = "";
+    private static String microphoneName = "";
+    private static boolean userIsNew = false;
+    private static boolean userIsServer = false;
 
     private static final String LOCATION_OF_FFMPEG_BIN_TOMISLAV = "C:\\Users\\Tomi\\Downloads\\ffmpeg-20200515-b18fd2b-win64-static\\bin";
     private static final String LOCATION_OF_FFMPEG_BIN_FILIP = "C:\\Users\\Korisnik\\Desktop\\ffmpeg-20200522-38490cb-win64-static\\bin";
+    private static final String WEBCAM_NAME_TOMISLAV = "\"HD WebCam\"";
+    private static final String WEBCAM_NAME_FILIP = "";
+    private static final String MICROPHONE_NAME_TOMISLAV = "\"Microphone Array (Intel® Smart Sound Technology (Intel® SST))\"";
+    private static final String MICROPHONE_NAME_FILIP = "";
     private static final String IP_TOMISLAV = "25.88.153.87";
     private static final String IP_FILIP = "25.90.15.98";
-    private static final String LOCALHOST = "127.0.0.1";
 
-//    private static String ffmpegRecordVideoAudio = "ffmpeg -f dshow -i video=\"HD WebCam\":audio=\"Microphone Array (Intel® Smart Sound Technology (Intel® SST))\"";
 
-    // Sending
-    private static String ffmpegStreamWebcamVideo
-            = "ffmpeg -f dshow -i video=\"HD WebCam\" -c:v libx264 -f mpegts -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp"; //25.105.181.67:12346
-    private static String ffmpegStreamWebcamVideoAndAudio
-            = "ffmpeg -f dshow -i video=\"HD WebCam\":audio=\"Microphone Array (Intel® Smart Sound Technology (Intel® SST))\" -vn -f rtp rtp://" + clientIP + ":" + rtpPort
-            + " -acodec libopus -an -f rtp rtp://" + clientIP + ":" + rtpPort + 1 + " -sdp_file file.sdp"; // 25.105.181.67:12346
-    private static String ffmpegStreamLocalVideo =
-            "ffmpeg -re -i video.mp4 -an -c:v copy -f rtp rtp://25.90.15.98:12346 -sdp_file file.sdp";
-    private static String ffmpegStreamAudio =
-            "ffmpeg -f dshow -i audio=\"Microphone Array (Intel® Smart Sound Technology (Intel® SST))\"" +
-                    " -acodec libopus -f rtp rtp://25.90.15.98:12346 -sdp_file file.sdp";
+    private static String ffmpegRecordVideoAudio = "ffmpeg -f dshow -i video=" + webcamName + ":audio=" + microphoneName;
 
-    //Receiving
-    private static String ffplayCommand
-            = "ffplay -protocol_whitelist \"file,rtp,udp\" file.sdp";
+    // Streaming commands
+    private static String ffmpegStreamLiveVideo =
+            "ffmpeg -f dshow -i video=" + webcamName + " -c:v libx264 -f mpegts -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp";
+    private static String ffmpegStreamLiveAudio =
+            "ffmpeg -f dshow -i audio=" + microphoneName + " -acodec libopus -f rtp rtp://25.90.15.98:12348 -sdp_file file.sdp";
+    private static String ffmpegStreamLiveVideoAndAudio =
+            "ffmpeg -f dshow -i video=" + webcamName + ":audio=" + microphoneName + " -vn -f rtp rtp://" + clientIP + ":" + rtpPort
+                    + " -acodec libopus -an -f rtp rtp://" + clientIP + ":" + rtpPort + 1 + " -sdp_file file.sdp";
+    private static String ffmpegStreamSavedVideo =
+            "ffmpeg -re -i video.mp4 -an -c:v copy -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp";
+
+    // Receiving commands
+    private static String ffplayCommand =
+            "ffplay -protocol_whitelist \"file,rtp,udp\" file.sdp";
 
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
 
-        setDataAndStartProgram(in);
+        setData(in);
+
+        if (userIsServer) {
+            startServer(in);
+        } else {
+            startClient(in);
+        }
     }
 
-    static void setDataAndStartProgram(Scanner in) {
+    static void setData(Scanner in) {
         String user = retrieveUser(in);
         switch (user) {
             case "1":
                 serverIP = IP_FILIP;
                 clientIP = IP_TOMISLAV;
                 ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_FILIP;
-                startServer(in);
+                userIsServer = true;
                 break;
             case "2":
                 serverIP = IP_TOMISLAV;
                 clientIP = IP_FILIP;
                 ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_FILIP;
-                startClient(in);
                 break;
             case "3":
                 serverIP = IP_TOMISLAV;
                 clientIP = IP_FILIP;
                 ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_TOMISLAV;
-                startServer(in);
+                userIsServer = true;
                 break;
             case "4":
                 serverIP = IP_FILIP;
                 clientIP = IP_TOMISLAV;
                 ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_TOMISLAV;
-                startClient(in);
                 break;
             case "5":
-                startServer(in);
+                retrieveBinLocation(in);
+                retrieveDeviceNames(in);
+                userIsServer = true;
                 break;
             case "6":
+                retrieveBinLocation(in);
                 setServerIP(in);
-                startClient(in);
                 break;
             default:
-                System.out.println("Illegal value was entered. Program will end.");
+                System.out.println("An illegal value was entered. Program is ending.");
                 System.exit(0);
                 break;
         }
     }
 
     static String retrieveUser(Scanner in) {
-        System.out.println();
+        System.out.print("\nPlease choose your role:\n");
         System.out.println("1 - Filip is the server");
         System.out.println("2 - Filip is the client");
         System.out.println("3 - Tomislav is the server");
         System.out.println("4 - Tomislav is the client");
-        System.out.println("5 - Custom user is server");
-        System.out.println("6 - Custom user is client");
-        System.out.printf("Choice: ");
+        System.out.println("5 - New user is server");
+        System.out.println("6 - New user is client");
+        System.out.print("Choice: ");
         return in.nextLine();
     }
 
+    static void retrieveBinLocation(Scanner in) {
+        System.out.println("Please enter the full location of your ffmpeg bin folder (e.g. C:\\Users\\User1\\Documents\\ffmpeg-2020xxyy-xxxxxxx-win64-static\\bin):");
+        ffmpegBinLocation = in.nextLine();
+    }
+
+    static void retrieveDeviceNames(Scanner in) {
+        System.out.print("\nPlease enter the name of your webcam (use command \"ffmpeg -list_devices true -f dshow -i dummy\"): ");
+        webcamName = in.nextLine();
+        System.out.print("\nPlease enter the name of your microphone (use command \"ffmpeg -list_devices true -f dshow -i dummy\"): ");
+        webcamName = in.nextLine();
+        System.out.print("\n");
+    }
+
     static void setServerIP(Scanner in) {
-        System.out.printf("Please enter the server endpoint: ");
+        System.out.printf("Please enter the IP address of the server: ");
         serverIP = in.nextLine();
     }
 
@@ -110,22 +136,14 @@ public class BroadcastClass {
         try (
                 // When you start the client program, the server should already be running and listening to the port,
                 // waiting for a client to request a connection
-                Socket socket = new Socket(serverIP, serverTcpPort)
+                Socket socket = new Socket(serverIP, serverTcpPort);
         ) {
             System.out.println("* Connected to server!\n");
-            //TODO receive sdp file at this point
 
-            System.out.println("Choose action:");
-            System.out.println("1 - Receive stream");
-            System.out.print("Choice: ");
-            switch (Integer.parseInt(cmdInput.nextLine())) {
-                case 1:
-                    cmd(ffplayCommand);
-                    break;
-                default:
-                    System.err.println("Wrong value was input, exiting program.");
-            }
+            System.out.print("Press enter to receive stream.");
+            cmdInput.nextLine();
 
+            cmd(ffplayCommand);
         } catch (UnknownHostException e) {
             System.err.println("Don't know about host " + serverIP);
             System.exit(1);
@@ -149,24 +167,24 @@ public class BroadcastClass {
         ) {
             System.out.println("* Client " + clientSocket.getInetAddress() + ":" + clientSocket.getPort() + " connected!");
 
-            System.out.println("Choose action:");
-            System.out.println("1 - Send webcam video stream");
-            System.out.println("2 - Send microphone audio stream");
-            System.out.println("3 - Send webcam video and audio streams");
-            System.out.println("4 - Send local video stream");
+            System.out.println("Please choose an action:");
+            System.out.println("1 - Send live video stream");
+            System.out.println("2 - Send live audio stream");
+            System.out.println("3 - Send live video and audio streams");
+            System.out.println("4 - Send saved video stream");
             System.out.print("Choice: ");
             switch (Integer.parseInt(cmdInput.nextLine())) {
                 case 1:
-                    cmd(ffmpegStreamWebcamVideo);
+                    cmd(ffmpegStreamLiveVideo);
                     break;
                 case 2:
-                    cmd(ffmpegStreamAudio);
+                    cmd(ffmpegStreamLiveAudio);
                     break;
                 case 3:
-                    Thread videoThread = new Thread(() -> cmd(ffmpegStreamWebcamVideoAndAudio));
+                    Thread videoThread = new Thread(() -> cmd(ffmpegStreamLiveVideoAndAudio));
                     break;
                 case 4:
-                    cmd(ffmpegStreamLocalVideo);
+                    cmd(ffmpegStreamSavedVideo);
                     break;
                 default:
                     System.err.println("Wrong value was input, exiting program.");
