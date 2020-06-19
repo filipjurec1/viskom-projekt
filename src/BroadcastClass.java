@@ -35,7 +35,7 @@ public class BroadcastClass {
     private static String ffmpegStreamLiveVideo =
             "ffmpeg -f dshow -i video=" + webcamName + " -c:v libx264 -f mpegts -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp";
     private static String ffmpegStreamLiveAudio =
-            "ffmpeg -f dshow -i audio=" + microphoneName + " -acodec libopus -f rtp rtp://25.90.15.98:12348 -sdp_file file.sdp";
+            "ffmpeg -f dshow -i audio=" + microphoneName + " -acodec libopus -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp";
     private static String ffmpegStreamLiveVideoAndAudio =
             "ffmpeg -f dshow -i video=" + webcamName + ":audio=" + microphoneName + " -vn -f rtp rtp://" + clientIP + ":" + rtpPort
                     + " -acodec libopus -an -f rtp rtp://" + clientIP + ":" + rtpPort + 1 + " -sdp_file file.sdp";
