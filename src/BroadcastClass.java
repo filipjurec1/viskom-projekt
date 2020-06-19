@@ -16,6 +16,7 @@ public class BroadcastClass {
     private static String ffmpegBinLocation = "";
     private static String webcamName = "";
     private static String microphoneName = "";
+    private static String videoLocation = "";
     private static boolean userIsNew = false;
     private static boolean userIsServer = false;
 
@@ -51,11 +52,9 @@ public class BroadcastClass {
                 microphoneName = MICROPHONE_NAME_FILIP;
                 webcamName = WEBCAM_NAME_FILIP;
 
-                clientIP = IP_TOMISLAV;
                 userIsServer = true;
                 break;
             case "2":
-                clientIP = IP_FILIP;
                 ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_FILIP;
 
                 serverIP = IP_TOMISLAV;
@@ -66,11 +65,9 @@ public class BroadcastClass {
                 microphoneName = MICROPHONE_NAME_TOMISLAV;
                 webcamName = WEBCAM_NAME_TOMISLAV;
 
-                clientIP = IP_FILIP;
                 userIsServer = true;
                 break;
             case "4":
-                clientIP = IP_TOMISLAV;
                 ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_TOMISLAV;
 
                 serverIP = IP_FILIP;
@@ -78,6 +75,7 @@ public class BroadcastClass {
             case "5":
                 retrieveBinLocation(in);
                 retrieveDeviceNames(in);
+                retrieveLocationOfVideoFile(in);
                 userIsServer = true;
                 break;
             case "6":
@@ -104,7 +102,7 @@ public class BroadcastClass {
     }
 
     static void retrieveBinLocation(Scanner in) {
-        System.out.println("Please enter the full location of your ffmpeg bin folder (e.g. C:\\Users\\User1\\Documents\\ffmpeg-2020xxyy-xxxxxxx-win64-static\\bin):");
+        System.out.println("Please enter the full location of your ffmpeg bin folder (e.g. C:\\Users\\User1\\Documents\\ffmpeg-2020xxyy-xxxxxxx-win64-static\\bin): ");
         ffmpegBinLocation = in.nextLine();
     }
 
@@ -114,6 +112,11 @@ public class BroadcastClass {
         System.out.print("\nPlease enter the name of your microphone, without quotation marks (use command \"ffmpeg -list_devices true -f dshow -i dummy\"): ");
         microphoneName = in.nextLine();
         System.out.print("\n");
+    }
+
+    private static void retrieveLocationOfVideoFile(Scanner in) {
+        System.out.println("Please enter the full location of your local video file (e.g. C:\\Users\\User1\\Documents\\video.mp4): ");
+        videoLocation = in.nextLine();
     }
 
     static void setServerIP(Scanner in) {
@@ -159,7 +162,11 @@ public class BroadcastClass {
                 BufferedReader in = new BufferedReader(
                         new InputStreamReader(clientSocket.getInputStream()));
         ) {
-            System.out.println("* Client " + clientSocket.getInetAddress() + ":" + clientSocket.getPort() + " connected!");
+            clientIP = clientSocket.getInetAddress().toString();
+            if (clientIP.contains("/")) {
+                clientIP = clientIP.split("/")[1];
+            }
+            System.out.println("* Client " + clientIP + ":" + clientSocket.getPort() + " connected!");
 
             System.out.println("Please choose an action:");
             System.out.println("1 - Send live video stream");
@@ -181,12 +188,12 @@ public class BroadcastClass {
                 case 3:
                     String ffmpegStreamLiveVideoAndAudio =
                             "ffmpeg -f dshow -i video=\"" + webcamName + "\":audio=\"" + microphoneName + "\" -vn -f rtp rtp://" + clientIP + ":" + rtpPort
-                                    + " -acodec libopus -an -f rtp rtp://" + clientIP + ":" + rtpPort + 1 + " -sdp_file file.sdp";
-                    Thread videoThread = new Thread(() -> cmd(ffmpegStreamLiveVideoAndAudio));
+                                    + " -acodec libopus -an -f rtp rtp://" + clientIP + ":" + (rtpPort + 1) + " -sdp_file file.sdp";
+                    cmd(ffmpegStreamLiveVideoAndAudio);
                     break;
                 case 4:
                     String ffmpegStreamSavedVideo =
-                            "ffmpeg -re -i video.mp4 -an -c:v copy -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp";
+                            "ffmpeg -re -i " + videoLocation + " -an -c:v copy -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp";
                     cmd(ffmpegStreamSavedVideo);
                     break;
                 default:
