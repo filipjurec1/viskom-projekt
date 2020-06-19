@@ -28,23 +28,7 @@ public class BroadcastClass {
     private static final String IP_TOMISLAV = "25.88.153.87";
     private static final String IP_FILIP = "25.90.15.98";
 
-
     private static String ffmpegRecordVideoAudio = "ffmpeg -f dshow -i video=" + webcamName + ":audio=" + microphoneName;
-
-    // Streaming commands
-    private static String ffmpegStreamLiveVideo =
-            "ffmpeg -f dshow -i video=\"" + webcamName + "\" -c:v libx264 -f mpegts -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp";
-    private static String ffmpegStreamLiveAudio =
-            "ffmpeg -f dshow -i audio=\"" + microphoneName + "\" -acodec libopus -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp";
-    private static String ffmpegStreamLiveVideoAndAudio =
-            "ffmpeg -f dshow -i video=\"" + webcamName + "\":audio=\"" + microphoneName + "\" -vn -f rtp rtp://" + clientIP + ":" + rtpPort
-                    + " -acodec libopus -an -f rtp rtp://" + clientIP + ":" + rtpPort + 1 + " -sdp_file file.sdp";
-    private static String ffmpegStreamSavedVideo =
-            "ffmpeg -re -i video.mp4 -an -c:v copy -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp";
-
-    // Receiving commands
-    private static String ffplayCommand =
-            "ffplay -protocol_whitelist \"file,rtp,udp\" file.sdp";
 
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
@@ -151,6 +135,8 @@ public class BroadcastClass {
             System.out.print("Press enter to receive stream.");
             cmdInput.nextLine();
 
+            String ffplayCommand =
+                    "ffplay -protocol_whitelist \"file,rtp,udp\" file.sdp";
             cmd(ffplayCommand);
         } catch (UnknownHostException e) {
             System.err.println("Don't know about host " + serverIP);
@@ -183,15 +169,24 @@ public class BroadcastClass {
             System.out.print("Choice: ");
             switch (Integer.parseInt(cmdInput.nextLine())) {
                 case 1:
+                    String ffmpegStreamLiveVideo =
+                            "ffmpeg -f dshow -i video=\"" + webcamName + "\" -c:v libx264 -f mpegts -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp";
                     cmd(ffmpegStreamLiveVideo);
                     break;
                 case 2:
+                    String ffmpegStreamLiveAudio =
+                            "ffmpeg -f dshow -i audio=\"" + microphoneName + "\" -acodec libopus -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp";
                     cmd(ffmpegStreamLiveAudio);
                     break;
                 case 3:
+                    String ffmpegStreamLiveVideoAndAudio =
+                            "ffmpeg -f dshow -i video=\"" + webcamName + "\":audio=\"" + microphoneName + "\" -vn -f rtp rtp://" + clientIP + ":" + rtpPort
+                                    + " -acodec libopus -an -f rtp rtp://" + clientIP + ":" + rtpPort + 1 + " -sdp_file file.sdp";
                     Thread videoThread = new Thread(() -> cmd(ffmpegStreamLiveVideoAndAudio));
                     break;
                 case 4:
+                    String ffmpegStreamSavedVideo =
+                            "ffmpeg -re -i video.mp4 -an -c:v copy -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp";
                     cmd(ffmpegStreamSavedVideo);
                     break;
                 default:
