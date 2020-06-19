@@ -51,6 +51,7 @@ public class BroadcastClass {
                 ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_FILIP;
                 microphoneName = MICROPHONE_NAME_FILIP;
                 webcamName = WEBCAM_NAME_FILIP;
+                retrieveLocationOfVideoFile(in);
 
                 userIsServer = true;
                 break;
@@ -64,7 +65,8 @@ public class BroadcastClass {
                 ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_TOMISLAV;
                 microphoneName = MICROPHONE_NAME_TOMISLAV;
                 webcamName = WEBCAM_NAME_TOMISLAV;
-
+                retrieveLocationOfVideoFile(in);
+                
                 userIsServer = true;
                 break;
             case "4":
