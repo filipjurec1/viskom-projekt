@@ -20,7 +20,7 @@ public class BroadcastClass {
     private static boolean userIsServer = false;
 
     private static final String LOCATION_OF_FFMPEG_BIN_TOMISLAV = "C:\\Users\\Tomi\\Downloads\\ffmpeg-20200515-b18fd2b-win64-static\\bin";
-    private static final String LOCATION_OF_FFMPEG_BIN_FILIP = "C:\\Users\\Korisnik\\Desktop\\ffmpeg-20200522-38490cb-win64-static\\bin";
+    private static final String LOCATION_OF_FFMPEG_BIN_FILIP = "C:\\Users\\Korisnik\\Desktop\\ffmpeg-202000617-0b3bd00-win64-static\\bin";
     private static final String WEBCAM_NAME_TOMISLAV = "HD WebCam";
     private static final String WEBCAM_NAME_FILIP = "HP HD Camera";
     private static final String MICROPHONE_NAME_TOMISLAV = "Microphone Array (Intel® Smart Sound Technology (Intel® SST))";
