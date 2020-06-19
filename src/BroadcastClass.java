@@ -21,10 +21,10 @@ public class BroadcastClass {
 
     private static final String LOCATION_OF_FFMPEG_BIN_TOMISLAV = "C:\\Users\\Tomi\\Downloads\\ffmpeg-20200515-b18fd2b-win64-static\\bin";
     private static final String LOCATION_OF_FFMPEG_BIN_FILIP = "C:\\Users\\Korisnik\\Desktop\\ffmpeg-20200522-38490cb-win64-static\\bin";
-    private static final String WEBCAM_NAME_TOMISLAV = "\"HD WebCam\"";
-    private static final String WEBCAM_NAME_FILIP = "";
-    private static final String MICROPHONE_NAME_TOMISLAV = "\"Microphone Array (Intel® Smart Sound Technology (Intel® SST))\"";
-    private static final String MICROPHONE_NAME_FILIP = "";
+    private static final String WEBCAM_NAME_TOMISLAV = "HD WebCam";
+    private static final String WEBCAM_NAME_FILIP = "HP HD Camera";
+    private static final String MICROPHONE_NAME_TOMISLAV = "Microphone Array (Intel® Smart Sound Technology (Intel® SST))";
+    private static final String MICROPHONE_NAME_FILIP = "Microphone (Conexant ISST Audio)";
     private static final String IP_TOMISLAV = "25.88.153.87";
     private static final String IP_FILIP = "25.90.15.98";
 
@@ -33,11 +33,11 @@ public class BroadcastClass {
 
     // Streaming commands
     private static String ffmpegStreamLiveVideo =
-            "ffmpeg -f dshow -i video=" + webcamName + " -c:v libx264 -f mpegts -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp";
+            "ffmpeg -f dshow -i video=\"" + webcamName + "\" -c:v libx264 -f mpegts -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp";
     private static String ffmpegStreamLiveAudio =
-            "ffmpeg -f dshow -i audio=" + microphoneName + " -acodec libopus -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp";
+            "ffmpeg -f dshow -i audio=\"" + microphoneName + "\" -acodec libopus -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp";
     private static String ffmpegStreamLiveVideoAndAudio =
-            "ffmpeg -f dshow -i video=" + webcamName + ":audio=" + microphoneName + " -vn -f rtp rtp://" + clientIP + ":" + rtpPort
+            "ffmpeg -f dshow -i video=\"" + webcamName + "\":audio=\"" + microphoneName + "\" -vn -f rtp rtp://" + clientIP + ":" + rtpPort
                     + " -acodec libopus -an -f rtp rtp://" + clientIP + ":" + rtpPort + 1 + " -sdp_file file.sdp";
     private static String ffmpegStreamSavedVideo =
             "ffmpeg -re -i video.mp4 -an -c:v copy -f rtp rtp://" + clientIP + ":" + rtpPort + " -sdp_file file.sdp";
@@ -63,25 +63,33 @@ public class BroadcastClass {
         switch (user) {
             case "1":
                 serverIP = IP_FILIP;
-                clientIP = IP_TOMISLAV;
                 ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_FILIP;
+                microphoneName = MICROPHONE_NAME_FILIP;
+                webcamName = WEBCAM_NAME_FILIP;
+
+                clientIP = IP_TOMISLAV;
                 userIsServer = true;
                 break;
             case "2":
-                serverIP = IP_TOMISLAV;
                 clientIP = IP_FILIP;
                 ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_FILIP;
+
+                serverIP = IP_TOMISLAV;
                 break;
             case "3":
                 serverIP = IP_TOMISLAV;
-                clientIP = IP_FILIP;
                 ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_TOMISLAV;
+                microphoneName = MICROPHONE_NAME_TOMISLAV;
+                webcamName = WEBCAM_NAME_TOMISLAV;
+
+                clientIP = IP_FILIP;
                 userIsServer = true;
                 break;
             case "4":
-                serverIP = IP_FILIP;
                 clientIP = IP_TOMISLAV;
                 ffmpegBinLocation = LOCATION_OF_FFMPEG_BIN_TOMISLAV;
+
+                serverIP = IP_FILIP;
                 break;
             case "5":
                 retrieveBinLocation(in);
@@ -117,10 +125,10 @@ public class BroadcastClass {
     }
 
     static void retrieveDeviceNames(Scanner in) {
-        System.out.print("\nPlease enter the name of your webcam (use command \"ffmpeg -list_devices true -f dshow -i dummy\"): ");
+        System.out.print("\nPlease enter the name of your webcam, without quotation marks (use command \"ffmpeg -list_devices true -f dshow -i dummy\"): ");
         webcamName = in.nextLine();
-        System.out.print("\nPlease enter the name of your microphone (use command \"ffmpeg -list_devices true -f dshow -i dummy\"): ");
-        webcamName = in.nextLine();
+        System.out.print("\nPlease enter the name of your microphone, without quotation marks (use command \"ffmpeg -list_devices true -f dshow -i dummy\"): ");
+        microphoneName = in.nextLine();
         System.out.print("\n");
     }
 
